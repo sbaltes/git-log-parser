@@ -18,7 +18,7 @@ class Commit {
     private final ArrayList<CommitFile> files;
     // only for merge
     private String mergedCommits;
-    private String sourceBranch;
+    private String sourceBranch; // remote-tracking branches usually start with "origin/"
     private String targetBranch;
     // only for merged pull request
     private int pullRequestId;

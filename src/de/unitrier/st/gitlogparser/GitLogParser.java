@@ -21,6 +21,7 @@ class GitLogParser {
     private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
     private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge branch '(.+)' into (.+)");
+    private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merge remote-tracking branch '(.+)'.*");
     private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
     private static final Pattern mergedPullRequestPattern = Pattern.compile("^\\s*Merge pull request #(\\d+) from (.+)/(.+)");
 
@@ -188,6 +189,14 @@ class GitLogParser {
                         String targetBranch = mergedBranchMatcher.group(2);
                         commit.setSourceBranch(sourceBranch);
                         commit.setTargetBranch(targetBranch);
+                        continue;
+                    }
+
+                    // check if log contains information about merged remote-tracking branch
+                    Matcher mergedRemoteTrackingBranchMatcher = mergedRemoteTrackingBranchPattern.matcher(line);
+                    if (mergedBranchMatcher.matches()) {
+                        String remoteTrackingBranch = mergedRemoteTrackingBranchMatcher.group(1);
+                        commit.setSourceBranch(remoteTrackingBranch);
                         continue;
                     }
 
