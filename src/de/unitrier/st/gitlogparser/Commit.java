@@ -194,4 +194,9 @@ class Commit {
     void setTagName(String tagName) {
         this.tagName = tagName.trim();
     }
+
+    String[] getValues() {
+        // TODO: add all values (or distinguish between merges and commits)
+        return new String[]{getProject(), getBranch(), getHashValue(), getLogMessage()};
+    }
 }
