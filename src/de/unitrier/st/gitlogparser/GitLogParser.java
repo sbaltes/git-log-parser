@@ -20,9 +20,9 @@ class GitLogParser {
     private static final Pattern authorDatePattern = Pattern.compile("^AuthorDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
-    private static final Pattern mergedPullRequestPattern = Pattern.compile("^\\s*Merge pull request #(\\d+) from (.+)/(.+)");
     private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge branch '(.+)' into (.+)");
     private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
+    private static final Pattern mergedPullRequestPattern = Pattern.compile("^\\s*Merge pull request #(\\d+) from (.+)/(.+)");
 
     private Path inputDir;
 
@@ -68,86 +68,141 @@ class GitLogParser {
 
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
+            boolean readingLogMessage = false;
+            boolean readingFileStats = false;
             StringBuilder logMessageBuilder = new StringBuilder();
 
             while ((line = reader.readLine()) != null) {
+                if (!readingLogMessage) {
+                    // commit hash
+                    Matcher commitHashMatcher = commitHashPattern.matcher(line);
+                    if (commitHashMatcher.matches()) {
+                        String commitHash = commitHashMatcher.group(1);
+                        commit = new Commit(project, branch, commitHash);
+                        continue;
+                    }
 
-                // commit hash
-                Matcher commitHashMatcher = commitHashPattern.matcher(line);
-                if (commitHashMatcher.matches()) {
-                    String commitHash = commitHashMatcher.group(1);
-                    if (commit != null) {
-                        // not first commit -> save log message of last commit
-                        commit.setLogMessage(logMessageBuilder.toString() + "\n");
+                    // merged commits
+                    Matcher mergeMatcher = mergePattern.matcher(line);
+                    if (mergeMatcher.matches()) {
+                        String mergedCommits = mergeMatcher.group(1);
+                        commit.setMergedCommits(mergedCommits);
+                        continue;
+                    }
+
+                    // author name and email
+                    Matcher authorNameMatcher = authorNamePattern.matcher(line);
+                    Matcher authorEmailMatcher = authorEmailPattern.matcher(line);
+                    if (authorNameMatcher.matches() || authorEmailMatcher.matches()) {
+                        if (authorNameMatcher.matches()) {
+                            String authorName = authorNameMatcher.group(1).trim();
+                            commit.setAuthorName(authorName);
+                        }
+                        if (authorEmailMatcher.matches()) {
+                            String authorEmail = authorEmailMatcher.group(1).trim();
+                            commit.setAuthorEmail(authorEmail);
+                        }
+                        continue;
+                    }
+
+                    // author date
+                    Matcher authorDateMatcher = authorDatePattern.matcher(line);
+                    if (authorDateMatcher.matches()) {
+                        String date = authorDateMatcher.group(1);
+                        commit.setAuthorDate(date);
+                        continue;
+                    }
+
+                    // commit name and email
+                    Matcher commitNameMatcher = commitNamePattern.matcher(line);
+                    Matcher commitEmailMatcher = commitEmailPattern.matcher(line);
+                    if (commitNameMatcher.matches() || commitEmailMatcher.matches()) {
+                        if (commitNameMatcher.matches()) {
+                            String commitName = commitNameMatcher.group(1).trim();
+                            commit.setCommitName(commitName);
+                        }
+                        if (commitEmailMatcher.matches()) {
+                            String commitEmail = commitEmailMatcher.group(1).trim();
+                            commit.setCommitEmail(commitEmail);
+                        }
+                        continue;
+                    }
+
+                    // commit date
+                    Matcher commitDateMatcher = commitDatePattern.matcher(line);
+                    if (commitDateMatcher.matches()) {
+                        String date = commitDateMatcher.group(1);
+                        commit.setCommitDate(date);
+                        continue;
+                    }
+
+                    // file stats (lines added/deleted)
+                    Matcher linesAddedDeletedMatcher = linesAddedDeletedPattern.matcher(line);
+                    if (linesAddedDeletedMatcher.matches()) {
+                        readingFileStats = true;
+                        int linesAdded = Integer.parseInt(linesAddedDeletedMatcher.group(1));
+                        int linesDeleted = Integer.parseInt(linesAddedDeletedMatcher.group(2));
+                        String path = linesAddedDeletedMatcher.group(3);
+                        commit.addFile(new CommitFile(linesAdded, linesDeleted, path));
+                        continue;
+                    }
+
+                    // detect beginning of log message
+                    if (line.trim().length() == 0) {
+                        // an empty line separates the header from the log message and the file stats from the next commit,
+                        // see https://git-scm.com/docs/pretty-formats
+                        if (readingFileStats) {
+                            // end of file stats
+                            readingFileStats = false;
+                        } else {
+                            // begin of log message
+                            readingLogMessage = true;
+                        }
+                    }
+                } else { // readingLogMessage is true
+
+                    // detect end of log message
+                    if (line.trim().length() == 0) {
+                        // save log message
+                        commit.setLogMessage(logMessageBuilder.toString());
                         logMessageBuilder = new StringBuilder();
+
+                        // an empty line separates the header from the log message and the file stats,
+                        // see https://git-scm.com/docs/pretty-formats
+                        readingLogMessage = false;
+                        continue;
                     }
 
-                    commit = new Commit(project, branch, commitHash);
-                    continue;
-                }
-
-                // merged commits
-                Matcher mergeMatcher = mergePattern.matcher(line);
-                if (mergeMatcher.matches()) {
-                    String mergedCommits = mergeMatcher.group(1);
-                    commit.setMergedCommits(mergedCommits);
-                    continue;
-                }
-
-                // author name and email
-                Matcher authorNameMatcher = authorNamePattern.matcher(line);
-                Matcher authorEmailMatcher = authorEmailPattern.matcher(line);
-                if (authorNameMatcher.matches() || authorEmailMatcher.matches()) {
-                    if (authorNameMatcher.matches()) {
-                        String authorName = authorNameMatcher.group(1).trim();
-                        commit.setAuthorName(authorName);
+                    // log messages are indented by 4 blanks
+                    if (line.startsWith("    ")) {
+                        line = line.substring(4);
                     }
-                    if (authorEmailMatcher.matches()) {
-                        String authorEmail = authorEmailMatcher.group(1).trim();
-                        commit.setAuthorEmail(authorEmail);
-                    }
-                    continue;
-                }
 
-                // author date
-                Matcher authorDateMatcher = authorDatePattern.matcher(line);
-                if (authorDateMatcher.matches()) {
-                    String date = authorDateMatcher.group(1);
-                    commit.setAuthorDate(date);
-                    continue;
-                }
-
-                // commit name and email
-                Matcher commitNameMatcher = commitNamePattern.matcher(line);
-                Matcher commitEmailMatcher = commitEmailPattern.matcher(line);
-                if (commitNameMatcher.matches() || commitEmailMatcher.matches()) {
-                    if (commitNameMatcher.matches()) {
-                        String commitName = commitNameMatcher.group(1).trim();
-                        commit.setCommitName(commitName);
-                    }
-                    if (commitEmailMatcher.matches()) {
-                        String commitEmail = commitEmailMatcher.group(1).trim();
-                        commit.setCommitEmail(commitEmail);
-                    }
-                    continue;
-                }
-
-                // commit date
-                Matcher commitDateMatcher = commitDatePattern.matcher(line);
-                if (commitDateMatcher.matches()) {
-                    String date = commitDateMatcher.group(1);
-                    commit.setCommitDate(date);
-                    continue;
-                }
-
-
-                // log message
-                if (line.startsWith("    ")) {
+                    // append current line to string builder
                     logMessageBuilder.append(line);
 
-                    // TODO: ignore empty lines
-                    // TODO: only check for merge... in commit title (header, blank, title, blank, text), see also https://git-scm.com/docs/pretty-formats
+                    // check if log contains information about merged branch
+                    Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
+                    if (mergedBranchMatcher.matches()) {
+                        String sourceBranch = mergedBranchMatcher.group(1);
+                        String targetBranch = mergedBranchMatcher.group(2);
+                        commit.setSourceBranch(sourceBranch);
+                        commit.setTargetBranch(targetBranch);
+                        continue;
+                    }
 
+                    // check if log contains information about merged tag
+                    Matcher mergedTagMatcher = mergeTagPattern.matcher(line);
+                    if (mergedTagMatcher.matches()) {
+                        String tagName = mergedTagMatcher.group(1);
+                        String targetBranch = mergedTagMatcher.group(2);
+                        commit.setTagName(tagName);
+                        commit.setTargetBranch(targetBranch);
+                        System.out.println(line);
+                        continue;
+                    }
+
+                    // check if log contains information about merged pull request
                     Matcher mergedPullRequestMatcher = mergedPullRequestPattern.matcher(line);
                     if (mergedPullRequestMatcher.matches()) {
                         String pullRequestId = mergedPullRequestMatcher.group(1);
@@ -159,40 +214,10 @@ class GitLogParser {
                         continue;
                     }
 
-                    Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
-                    if (mergedBranchMatcher.matches()) {
-                        String sourceBranch = mergedBranchMatcher.group(1);
-                        String targetBranch = mergedBranchMatcher.group(2);
-                        commit.setSourceBranch(sourceBranch);
-                        commit.setTargetBranch(targetBranch);
-                        continue;
-                    }
-
-                    Matcher mergedTagMatcher = mergeTagPattern.matcher(line);
-                    if (mergedTagMatcher.matches()) {
-                        String tagName = mergedTagMatcher.group(1);
-                        String targetBranch = mergedTagMatcher.group(2);
-                        commit.setTagName(tagName);
-                        commit.setTargetBranch(targetBranch);
-                        continue;
-                    }
-
                     if (line.trim().startsWith("merge")) {
                         System.out.println(line);
                     }
-
-                    continue;
                 }
-
-                // file info (lines added/deleted)
-                Matcher linesAddedDeletedMatcher = linesAddedDeletedPattern.matcher(line);
-                if (linesAddedDeletedMatcher.matches()) {
-                    int linesAdded = Integer.parseInt(linesAddedDeletedMatcher.group(1));
-                    int linesDeleted = Integer.parseInt(linesAddedDeletedMatcher.group(2));
-                    String path = linesAddedDeletedMatcher.group(3);
-                    commit.addFile(new CommitFile(linesAdded, linesDeleted, path));
-                }
-
             }
         } catch (IOException e) {
             e.printStackTrace();
