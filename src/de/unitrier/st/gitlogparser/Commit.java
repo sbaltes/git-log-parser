@@ -67,7 +67,7 @@ class Commit {
     }
 
     void setProject(String project) {
-        this.project = project;
+        this.project = project.trim();
     }
 
     String getBranch() {
@@ -75,7 +75,7 @@ class Commit {
     }
 
     void setBranch(String branch) {
-        this.branch = branch;
+        this.branch = branch.trim();
     }
 
     String getHashValue() {
@@ -83,7 +83,7 @@ class Commit {
     }
 
     void setHashValue(String hashValue) {
-        this.hashValue = hashValue;
+        this.hashValue = hashValue.trim();
     }
 
     String getAuthorName() {
@@ -91,7 +91,7 @@ class Commit {
     }
 
     void setAuthorName(String authorName) {
-        this.authorName = authorName;
+        this.authorName = authorName.trim();
     }
 
     String getAuthorEmail() {
@@ -99,7 +99,7 @@ class Commit {
     }
 
     void setAuthorEmail(String authorEmail) {
-        this.authorEmail = authorEmail;
+        this.authorEmail = authorEmail.trim();
     }
 
     String getAuthorDate() {
@@ -107,7 +107,7 @@ class Commit {
     }
 
     void setAuthorDate(String authorDate) {
-        this.authorDate = authorDate;
+        this.authorDate = authorDate.trim();
     }
 
     String getCommitName() {
@@ -115,7 +115,7 @@ class Commit {
     }
 
     void setCommitName(String commitName) {
-        this.commitName = commitName;
+        this.commitName = commitName.trim();
     }
 
     String getCommitEmail() {
@@ -123,7 +123,7 @@ class Commit {
     }
 
     void setCommitEmail(String commitEmail) {
-        this.commitEmail = commitEmail;
+        this.commitEmail = commitEmail.trim();
     }
 
     String getCommitDate() {
@@ -131,7 +131,7 @@ class Commit {
     }
 
     void setCommitDate(String commitDate) {
-        this.commitDate = commitDate;
+        this.commitDate = commitDate.trim();
     }
 
     String getLogMessage() {
@@ -152,7 +152,7 @@ class Commit {
     }
 
     void setMergedCommits(String mergedCommits) {
-        this.mergedCommits = mergedCommits;
+        this.mergedCommits = mergedCommits.trim();
     }
 
     String getSourceBranch() {
@@ -160,7 +160,7 @@ class Commit {
     }
 
     void setSourceBranch(String sourceBranch) {
-        this.sourceBranch = sourceBranch;
+        this.sourceBranch = sourceBranch.trim();
     }
 
     String getTargetBranch() {
@@ -168,7 +168,7 @@ class Commit {
     }
 
     void setTargetBranch(String targetBranch) {
-        this.targetBranch = targetBranch;
+        this.targetBranch = targetBranch.trim();
     }
 
     int getPullRequestId() {
@@ -184,7 +184,7 @@ class Commit {
     }
 
     void setPullRequestUser(String pullRequestUser) {
-        this.pullRequestUser = pullRequestUser;
+        this.pullRequestUser = pullRequestUser.trim();
     }
 
     String getTagName() {
@@ -192,6 +192,6 @@ class Commit {
     }
 
     void setTagName(String tagName) {
-        this.tagName = tagName;
+        this.tagName = tagName.trim();
     }
 }
