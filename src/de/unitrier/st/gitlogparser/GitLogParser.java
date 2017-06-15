@@ -17,22 +17,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class GitLogParser {
-    private static final Pattern fileNamePattern = Pattern.compile("^(.+_.+)§(.+)_(commits|merges)\\.log$");
-    private static final Pattern commitHashPattern = Pattern.compile("^commit\\s+(\\w{40}).*");
-    private static final Pattern authorNamePattern = Pattern.compile("^Author:\\s+([^<]+).*");
-    private static final Pattern authorEmailPattern = Pattern.compile("^Author:\\s+[^<]+<([^>]+)>.*");
-    private static final Pattern commitNamePattern = Pattern.compile("^Commit:\\s+([^<]+).*");
-    private static final Pattern commitEmailPattern = Pattern.compile("^Commit:\\s+[^<]+<([^>]+)>.*");
-    private static final Pattern mergePattern = Pattern.compile("^Merge:\\s+([\\w\\s]+).*");
-    private static final Pattern authorDatePattern = Pattern.compile("^AuthorDate:\\s+([\\w\\s-:+]+).*");
-    private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
-    private static final Pattern fileStatsPattern = Pattern.compile("^(\\d+|-)\\s+(\\d+|-)\\s+(.+)");
-    private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
-    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merged?(?:\\s+remote)?(?:\\s+branch)?\\s+'([^\\s]+)'(?:\\s+of\\s+([^\\s]+))?(?:\\s+into\\s+([^\\s]+))?.*");
-    private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merged? remote-tracking branch '([^\\s]+)'.*");
-    private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merged?\\s+tag\\s+'(.+)'(?:\\s+into\\s+([^\\s]+))?.*");
-    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merged?\\s+pull\\s+request\\s+#(\\d+)(?:\\s+from ([^\\s]+)/([^\\s]+))?.*");
-    private static final Pattern mergedCommitPattern = Pattern.compile("\\s*Merged?(?:\\s+commit)?\\s+'([^\\s]+)'(?:\\s+into\\s+([^\\s]+))?.*");
+    private static final Pattern fileNamePattern = Pattern.compile("(?i)^(.+_.+)§(.+)_(commits|merges)\\.log$");
+    private static final Pattern commitHashPattern = Pattern.compile("(?i)^commit\\s+(\\w{40}).*");
+    private static final Pattern authorNamePattern = Pattern.compile("(?i)^Author:\\s+([^<]+).*");
+    private static final Pattern authorEmailPattern = Pattern.compile("(?i)^Author:\\s+[^<]+<([^>]+)>.*");
+    private static final Pattern commitNamePattern = Pattern.compile("(?i)^Commit:\\s+([^<]+).*");
+    private static final Pattern commitEmailPattern = Pattern.compile("(?i)^Commit:\\s+[^<]+<([^>]+)>.*");
+    private static final Pattern mergePattern = Pattern.compile("(?i)^Merge:\\s+([\\w\\s]+).*");
+    private static final Pattern authorDatePattern = Pattern.compile("(?i)^AuthorDate:\\s+([\\w\\s-:+]+).*");
+    private static final Pattern commitDatePattern = Pattern.compile("(?i)^CommitDate:\\s+([\\w\\s-:+]+).*");
+    private static final Pattern fileStatsPattern = Pattern.compile("(?i)^(\\d+|-)\\s+(\\d+|-)\\s+(.+)");
+    private static final Pattern linesAddedDeletedPattern = Pattern.compile("(?i)^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
+    private static final Pattern mergedBranchPattern = Pattern.compile("(?i)\\s*Merged?(?:\\s+remote)?(?:\\s+branch)?\\s+'([^\\s]+)'(?:\\s+of\\s+([^\\s]+))?(?:\\s+into\\s+([^\\s]+))?.*");
+    private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("(?i)\\s*Merged? remote-tracking branch '([^\\s]+)'.*");
+    private static final Pattern mergeTagPattern = Pattern.compile("(?i)\\s*Merged?\\s+tag\\s+'(.+)'(?:\\s+into\\s+([^\\s]+))?.*");
+    private static final Pattern mergedPullRequestPattern = Pattern.compile("(?i)\\s*Merged?\\s+pull\\s+request\\s+#(\\d+)(?:\\s+from ([^\\s]+)/([^\\s]+))?.*");
+    private static final Pattern mergedCommitPattern = Pattern.compile("(?i)\\s*Merged?(?:\\s+commit)?\\s+'([^\\s]+)'(?:\\s+into\\s+([^\\s]+))?.*");
 
     private Path inputDirPath, outputDirPath;
     private LinkedList<Commit> commits;
@@ -135,7 +135,11 @@ class GitLogParser {
                         }
                         if (authorEmailMatcher.matches()) {
                             String authorEmail = authorEmailMatcher.group(1).trim();
-                            currentCommit.setAuthorEmail(authorEmail);
+                            if (authorEmail.contains("@")) {
+                                currentCommit.setAuthorEmail(authorEmail);
+                            } else {
+                                currentCommit.setAuthorEmail("");
+                            }
                         }
                         continue;
                     }
@@ -158,7 +162,11 @@ class GitLogParser {
                         }
                         if (commitEmailMatcher.matches()) {
                             String commitEmail = commitEmailMatcher.group(1).trim();
-                            currentCommit.setCommitEmail(commitEmail);
+                            if (commitEmail.contains("@")) {
+                                currentCommit.setCommitEmail(commitEmail);
+                            } else {
+                                currentCommit.setCommitEmail("");
+                            }
                         }
                         continue;
                     }
@@ -281,9 +289,9 @@ class GitLogParser {
                         }
 
                         // print merge log messages that were not matched
-                        if (line.trim().toLowerCase().startsWith("merge")) {
-                            System.out.println(line);
-                        }
+                        //if (line.trim().toLowerCase().startsWith("merge")) {
+                        //    System.out.println(line);
+                        //}
                     }
 
                 }
