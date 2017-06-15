@@ -28,10 +28,10 @@ class GitLogParser {
     private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern fileStatsPattern = Pattern.compile("^(\\d+|-)\\s+(\\d+|-)\\s+(.+)");
     private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
-    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge\\s+branch\\s+'(.+)'(?:\\s+of\\s+(.+))?\\s+into\\s+(.+)\\s*");
+    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge(?:\\s+remote)?(?:\\s+branch)?\\s+'(.+)'(?:\\s+of\\s+([^ ]+))?(?:\\s+into\\s+([^ ]+)\\s*)?");
     private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merge remote-tracking branch '(.+)'.*");
     private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
-    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merge\\s+pull\\s+request\\s+#(\\d+)\\s+from (.+)/(.+)\\s*");
+    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merge\\s+pull\\s+request\\s+#(\\d+)(?:\\s+from (.+)/(.+))?\\s*");
 
     private Path inputDirPath, outputDirPath;
     private LinkedList<Commit> commits;
@@ -206,7 +206,7 @@ class GitLogParser {
                         }
 
                         // append current line to string builder
-                        logMessageBuilder.append(line += "\n");
+                        logMessageBuilder.append(line).append("\n");
 
                         // check if log contains information about merged branch
                         Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
@@ -220,14 +220,18 @@ class GitLogParser {
                                 currentCommit.setSourceRepo(sourceRepo);
                             }
 
-                            String targetBranch = mergedBranchMatcher.group(3);
-                            currentCommit.setTargetBranch(targetBranch);
+                            if (mergedBranchMatcher.group(3) != null) {
+                                // "into"-part present
+                                String targetBranch = mergedBranchMatcher.group(3);
+                                currentCommit.setTargetBranch(targetBranch);
+                            }
+
                             continue;
                         }
 
                         // check if log contains information about merged remote-tracking branch
                         Matcher mergedRemoteTrackingBranchMatcher = mergedRemoteTrackingBranchPattern.matcher(line);
-                        if (mergedBranchMatcher.matches()) {
+                        if (mergedRemoteTrackingBranchMatcher.matches()) {
                             String remoteTrackingBranch = mergedRemoteTrackingBranchMatcher.group(1);
                             currentCommit.setSourceBranch(remoteTrackingBranch);
                             continue;
@@ -240,7 +244,6 @@ class GitLogParser {
                             String targetBranch = mergedTagMatcher.group(2);
                             currentCommit.setTagName(tagName);
                             currentCommit.setTargetBranch(targetBranch);
-                            System.out.println(line);
                             continue;
                         }
 
@@ -248,11 +251,16 @@ class GitLogParser {
                         Matcher mergedPullRequestMatcher = mergedPullRequestPattern.matcher(line);
                         if (mergedPullRequestMatcher.matches()) {
                             String pullRequestId = mergedPullRequestMatcher.group(1);
-                            String pullRequestUser = mergedPullRequestMatcher.group(2);
-                            String sourceBranch = mergedPullRequestMatcher.group(3);
                             currentCommit.setPullRequestId(pullRequestId);
-                            currentCommit.setSourceBranch(sourceBranch);
-                            currentCommit.setSourceUser(pullRequestUser);
+
+                            if (mergedPullRequestMatcher.group(2) != null && mergedPullRequestMatcher.group(3) != null) {
+                                // "from"-part present
+                                String pullRequestUser = mergedPullRequestMatcher.group(2);
+                                currentCommit.setSourceUser(pullRequestUser);
+                                String sourceBranch = mergedPullRequestMatcher.group(3);
+                                currentCommit.setSourceBranch(sourceBranch);
+                            }
+
                             continue;
                         }
 
