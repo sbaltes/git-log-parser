@@ -31,7 +31,7 @@ class GitLogParser {
     private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge\\s+branch\\s+'(.+)'(?:\\s+of\\s+(.+))?\\s+into\\s+(.+)\\s*");
     private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merge remote-tracking branch '(.+)'.*");
     private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
-    private static final Pattern mergedPullRequestPattern = Pattern.compile("^\\s*Merge pull request #(\\d+) from (.+)/(.+)");
+    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merge\\s+pull\\s+request\\s+#(\\d+)\\s+from (.+)/(.+)\\s*");
 
     private Path inputDirPath, outputDirPath;
     private LinkedList<Commit> commits;
@@ -252,7 +252,7 @@ class GitLogParser {
                             String sourceBranch = mergedPullRequestMatcher.group(3);
                             currentCommit.setPullRequestId(pullRequestId);
                             currentCommit.setSourceBranch(sourceBranch);
-                            currentCommit.setPullRequestUser(pullRequestUser);
+                            currentCommit.setSourceUser(pullRequestUser);
                             continue;
                         }
 

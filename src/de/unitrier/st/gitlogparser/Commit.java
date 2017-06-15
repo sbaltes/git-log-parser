@@ -19,12 +19,12 @@ class Commit {
     private final ArrayList<CommitFile> files;
     // only for merge
     private String mergedCommits;
-    private String sourceRepo; // e.g. Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master
+    private String sourceUser; // for pull requests, e.g. "Merge pull request #4996 from Fivell/issue_4977"
+    private String sourceRepo; // e.g. "Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master"
     private String sourceBranch; // remote-tracking branches usually start with "origin/"
     private String targetBranch;
     // only for merged pull request
     private String pullRequestId;
-    private String pullRequestUser;
     // only for merged tag
     private String tagName;
 
@@ -48,10 +48,11 @@ class Commit {
         output += "LogMessageLength: " + logMessageLength + "; ";
         output += "FileCount: " + files.size() + "; ";
         output += "MergedCommits: " + mergedCommits + "; ";
+        output += "SourceUser: " + sourceUser + "; ";
+        output += "SourceRepo: " + sourceRepo + "; ";
         output += "SourceBranch: " + sourceBranch + "; ";
         output += "TargetBranch: " + targetBranch + "; ";
         output += "PullRequestId: " + pullRequestId + "; ";
-        output += "PullRequestUser: " + pullRequestUser + "; ";
         output += "TagName: " + tagName + "; ";
         return output;
     }
@@ -165,11 +166,11 @@ class Commit {
         this.sourceBranch = sourceBranch.trim();
     }
 
-    public String getSourceRepo() {
+    String getSourceRepo() {
         return sourceRepo;
     }
 
-    public void setSourceRepo(String sourceRepo) {
+    void setSourceRepo(String sourceRepo) {
         this.sourceRepo = sourceRepo;
     }
 
@@ -189,12 +190,12 @@ class Commit {
         this.pullRequestId = pullRequestId;
     }
 
-    String getPullRequestUser() {
-        return pullRequestUser;
+    String getSourceUser() {
+        return sourceUser;
     }
 
-    void setPullRequestUser(String pullRequestUser) {
-        this.pullRequestUser = pullRequestUser.trim();
+    void setSourceUser(String sourceUser) {
+        this.sourceUser = sourceUser.trim();
     }
 
     String getTagName() {
@@ -266,8 +267,8 @@ class Commit {
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
         log_message_length, log_message,
-        source_repo, source_branch, target_branch,
-        pull_request_id, pull_request_user,
+        source_user, source_repo, source_branch, target_branch,
+        pull_request_id,
         tag_name
     }
 
@@ -277,8 +278,8 @@ class Commit {
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
                 String.valueOf(getLogMessageLength()), getLogMessage(),
-                getSourceRepo(), getSourceBranch(), getTargetBranch(),
-                getPullRequestId(), getPullRequestUser(),
+                getSourceUser(), getSourceRepo(), getSourceBranch(), getTargetBranch(),
+                getPullRequestId(),
                 getTagName()
         };
     }
