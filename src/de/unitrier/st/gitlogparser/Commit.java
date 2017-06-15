@@ -256,7 +256,7 @@ class Commit {
         project, branch, hash_value,
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
-        log_message_length, log_message,
+        log_message_length, /*log_message,*/
         file_count, lines_added, lines_deleted,
         file_extensions
     }
@@ -266,7 +266,7 @@ class Commit {
                 getProject(), getBranch(), getHashValue(),
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
-                String.valueOf(getLogMessageLength()), getLogMessage(),
+                String.valueOf(getLogMessageLength()), /*getLogMessage(),*/
                 String.valueOf(getFileCount()), String.valueOf(getLinesAdded()), String.valueOf(getLinesDeleted()),
                 getFileExtensions(),
         };
@@ -276,7 +276,7 @@ class Commit {
         project, branch, hash_value, merged_commits,
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
-        log_message_length, log_message,
+        log_message_length, /*log_message,*/
         source_user, source_repo, source_branch, source_commit, target_branch,
         pull_request_id,
         tag_name
@@ -287,7 +287,7 @@ class Commit {
                 getProject(), getBranch(), getHashValue(), getMergedCommits(),
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
-                String.valueOf(getLogMessageLength()), getLogMessage(),
+                String.valueOf(getLogMessageLength()), /*getLogMessage(),*/
                 getSourceUser(), getSourceRepo(), getSourceBranch(), getSourceCommit(), getTargetBranch(),
                 getPullRequestId(),
                 getTagName()
