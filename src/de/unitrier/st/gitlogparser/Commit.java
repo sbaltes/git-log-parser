@@ -19,6 +19,7 @@ class Commit {
     private final ArrayList<CommitFile> files;
     // only for merge
     private String mergedCommits;
+    private String sourceRepo; // e.g. Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master
     private String sourceBranch; // remote-tracking branches usually start with "origin/"
     private String targetBranch;
     // only for merged pull request
@@ -164,6 +165,14 @@ class Commit {
         this.sourceBranch = sourceBranch.trim();
     }
 
+    public String getSourceRepo() {
+        return sourceRepo;
+    }
+
+    public void setSourceRepo(String sourceRepo) {
+        this.sourceRepo = sourceRepo;
+    }
+
     String getTargetBranch() {
         return targetBranch;
     }
@@ -257,7 +266,7 @@ class Commit {
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
         log_message_length, log_message,
-        source_branch, target_branch,
+        source_repo, source_branch, target_branch,
         pull_request_id, pull_request_user,
         tag_name
     }
@@ -268,7 +277,7 @@ class Commit {
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
                 String.valueOf(getLogMessageLength()), getLogMessage(),
-                getSourceBranch(), getTargetBranch(),
+                getSourceRepo(), getSourceBranch(), getTargetBranch(),
                 getPullRequestId(), getPullRequestUser(),
                 getTagName()
         };

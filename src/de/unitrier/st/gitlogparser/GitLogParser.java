@@ -28,7 +28,7 @@ class GitLogParser {
     private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern fileStatsPattern = Pattern.compile("^(\\d+|-)\\s+(\\d+|-)\\s+(.+)");
     private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
-    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge branch '(.+)' into (.+)");
+    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge\\s+branch\\s+'(.+)'(?:\\s+of\\s+(.+))?\\s+into\\s+(.+)\\s*");
     private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merge remote-tracking branch '(.+)'.*");
     private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
     private static final Pattern mergedPullRequestPattern = Pattern.compile("^\\s*Merge pull request #(\\d+) from (.+)/(.+)");
@@ -212,8 +212,15 @@ class GitLogParser {
                         Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
                         if (mergedBranchMatcher.matches()) {
                             String sourceBranch = mergedBranchMatcher.group(1);
-                            String targetBranch = mergedBranchMatcher.group(2);
                             currentCommit.setSourceBranch(sourceBranch);
+
+                            if (mergedBranchMatcher.group(2) != null) {
+                                // "of"-part present
+                                String sourceRepo = mergedBranchMatcher.group(2);
+                                currentCommit.setSourceRepo(sourceRepo);
+                            }
+
+                            String targetBranch = mergedBranchMatcher.group(3);
                             currentCommit.setTargetBranch(targetBranch);
                             continue;
                         }
