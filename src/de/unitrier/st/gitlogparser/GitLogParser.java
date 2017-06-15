@@ -250,9 +250,13 @@ class GitLogParser {
                         Matcher mergedTagMatcher = mergeTagPattern.matcher(line);
                         if (mergedTagMatcher.matches()) {
                             String tagName = mergedTagMatcher.group(1);
-                            String targetBranch = mergedTagMatcher.group(2);
                             currentCommit.setTagName(tagName);
-                            currentCommit.setTargetBranch(targetBranch);
+
+                            if (mergedTagMatcher.group(2) != null) {
+                                String targetBranch = mergedTagMatcher.group(2);
+                                currentCommit.setTargetBranch(targetBranch);
+                            }
+
                             continue;
                         }
 
