@@ -6,13 +6,13 @@ class CommitFile {
     private int linesAdded;
     private int linesDeleted;
     private String path;
-    private String fileExt;
+    private String fileExtension;
 
     CommitFile() {
         linesAdded = 0;
         linesDeleted = 0;
         path = "";
-        fileExt = "";
+        fileExtension = "";
     }
 
     CommitFile(int linesAdded, int linesDeleted, String path) {
@@ -43,10 +43,10 @@ class CommitFile {
 
     void setPath(String path) {
         this.path = path;
-        this.fileExt = FilenameUtils.getExtension(path);
+        this.fileExtension = FilenameUtils.getExtension(path);
     }
 
-    String getFileExt() {
-        return fileExt;
+    String getFileExtension() {
+        return fileExtension;
     }
 }

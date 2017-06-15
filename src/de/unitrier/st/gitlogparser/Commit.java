@@ -1,6 +1,7 @@
 package de.unitrier.st.gitlogparser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 class Commit {
     private String project;
@@ -21,7 +22,7 @@ class Commit {
     private String sourceBranch; // remote-tracking branches usually start with "origin/"
     private String targetBranch;
     // only for merged pull request
-    private int pullRequestId;
+    private String pullRequestId;
     private String pullRequestUser;
     // only for merged tag
     private String tagName;
@@ -171,11 +172,11 @@ class Commit {
         this.targetBranch = targetBranch.trim();
     }
 
-    int getPullRequestId() {
+    String getPullRequestId() {
         return pullRequestId;
     }
 
-    void setPullRequestId(int pullRequestId) {
+    void setPullRequestId(String pullRequestId) {
         this.pullRequestId = pullRequestId;
     }
 
@@ -195,8 +196,82 @@ class Commit {
         this.tagName = tagName.trim();
     }
 
-    String[] getValues() {
-        // TODO: add all values (or distinguish between merges and commits)
-        return new String[]{getProject(), getBranch(), getHashValue(), getLogMessage()};
+    int getFileCount() {
+        return files.size();
     }
+
+    int getLinesAdded() {
+        int linesAdded = 0;
+        for (CommitFile file : files) {
+            linesAdded += file.getLinesAdded();
+        }
+        return linesAdded;
+    }
+
+    int getLinesDeleted() {
+        int linesDeleted = 0;
+        for (CommitFile file : files) {
+            linesDeleted += file.getLinesDeleted();
+        }
+        return linesDeleted;
+    }
+
+    String getFileExtensions() {
+        HashSet<String> fileExtensions = new HashSet<>();
+        for (CommitFile file : files) {
+            String fileExtension = file.getFileExtension();
+            if (file.getFileExtension().length() == 0) {
+                fileExtension = "none";
+            }
+            fileExtensions.add(fileExtension);
+        }
+        String result = "";
+        for (String fileExtension : fileExtensions) {
+            result = fileExtension.length() == 0 ? fileExtension : result + " " + fileExtension;
+        }
+        return result;
+    }
+
+    enum csvHeaderCommits {
+        project, branch, hash_value,
+        author_name, author_email, author_date,
+        commit_name, commit_email, commit_date,
+        log_message_length, log_message,
+        file_count, lines_added, lines_deleted,
+        file_extensions
+    }
+
+    String[] getValuesCommits() {
+        return new String[]{
+                getProject(), getBranch(), getHashValue(),
+                getAuthorName(), getAuthorEmail(), getAuthorDate(),
+                getCommitName(), getCommitEmail(), getCommitDate(),
+                String.valueOf(getLogMessageLength()), getLogMessage(),
+                String.valueOf(getFileCount()), String.valueOf(getLinesAdded()), String.valueOf(getLinesDeleted()),
+                getFileExtensions(),
+        };
+    }
+
+    enum csvHeaderMerges {
+        project, branch, hash_value, merged_commits,
+        author_name, author_email, author_date,
+        commit_name, commit_email, commit_date,
+        log_message_length, log_message,
+        source_branch, target_branch,
+        pull_request_id, pull_request_user,
+        tag_name
+    }
+
+    String[] getValuesMerges() {
+        return new String[]{
+                getProject(), getBranch(), getHashValue(), getMergedCommits(),
+                getAuthorName(), getAuthorEmail(), getAuthorDate(),
+                getCommitName(), getCommitEmail(), getCommitDate(),
+                String.valueOf(getLogMessageLength()), getLogMessage(),
+                getSourceBranch(), getTargetBranch(),
+                getPullRequestId(), getPullRequestUser(),
+                getTagName()
+        };
+    }
+
 }

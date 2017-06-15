@@ -11,6 +11,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,7 +51,6 @@ class GitLogParser {
                 File file = new File(path.toAbsolutePath().toString());
                 if (file.exists() && file.isFile() && !file.isHidden()
                         && FilenameUtils.getExtension(file.getName()).equals("log")) {
-                    System.out.println("Now parsing file: " + file.getName());
                     commits = parseFile(file);
                     writeData(outputDirPath);
                 }
@@ -62,6 +62,8 @@ class GitLogParser {
     }
 
     private LinkedList<Commit> parseFile(File file) {
+
+        System.out.println("Parsing file: " + file.getName());
 
         commits = new LinkedList<>();
         project = "";
@@ -97,17 +99,23 @@ class GitLogParser {
                 // commit hash
                 Matcher commitHashMatcher = commitHashPattern.matcher(line);
                 if (commitHashMatcher.matches()) {
+
                     // save previous commit
                     if (currentCommit != null) {
+                        // save log message without trailing empty lines
+                        currentCommit.setLogMessage(logMessageBuilder.toString().trim());
+                        logMessageBuilder = new StringBuilder();
+                        readingLogMessage = false; // needed in case file stats not present on log (true for merges)
                         commits.add(currentCommit);
                     }
+
                     String commitHash = commitHashMatcher.group(1);
                     currentCommit = new Commit(project, branch, commitHash);
                     readingHeader = true;
                     continue;
                 }
 
-                if (readingHeader) {
+                if (readingHeader && currentCommit != null) {
                     // merged commits
                     Matcher mergeMatcher = mergePattern.matcher(line);
                     if (mergeMatcher.matches()) {
@@ -171,15 +179,14 @@ class GitLogParser {
                     }
                 } else { // readingHeader is false
 
+                    if (currentCommit == null) {
+                        continue;
+                    }
+
                     // file stats (lines added/deleted or "- -" in case of binary files)
                     Matcher fileStatsMatcher = fileStatsPattern.matcher(line);
                     if (fileStatsMatcher.matches()) {
-                        if (readingLogMessage) {
-                            // save log message
-                            currentCommit.setLogMessage(logMessageBuilder.toString());
-                            logMessageBuilder = new StringBuilder();
-                            readingLogMessage = false;
-                        }
+                        readingLogMessage = false;
 
                         // extract lines added/deleted and ignore binary files ("- -")
                         Matcher linesAddedDeletedMatcher = linesAddedDeletedPattern.matcher(line);
@@ -199,7 +206,7 @@ class GitLogParser {
                         }
 
                         // append current line to string builder
-                        logMessageBuilder.append(line);
+                        logMessageBuilder.append(line += "\n");
 
                         // check if log contains information about merged branch
                         Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
@@ -236,13 +243,13 @@ class GitLogParser {
                             String pullRequestId = mergedPullRequestMatcher.group(1);
                             String pullRequestUser = mergedPullRequestMatcher.group(2);
                             String sourceBranch = mergedPullRequestMatcher.group(3);
-                            currentCommit.setPullRequestId(Integer.parseInt(pullRequestId));
+                            currentCommit.setPullRequestId(pullRequestId);
                             currentCommit.setSourceBranch(sourceBranch);
                             currentCommit.setPullRequestUser(pullRequestUser);
                             continue;
                         }
 
-                        if (line.trim().startsWith("merge")) {
+                        if (line.trim().toLowerCase().startsWith("merge")) {
                             System.out.println(line);
                         }
                     }
@@ -266,21 +273,39 @@ class GitLogParser {
         }
 
         CSVFormat csvFormat = CSVFormat.DEFAULT
-                .withHeader()
                 .withDelimiter(';')
-                .withQuote('\"')
-                .withQuoteMode(QuoteMode.MINIMAL)
+                .withQuote('"')
+                .withQuoteMode(QuoteMode.ALL)
+                .withEscape('\\')
                 .withNullString("");
+
+        switch (type) {
+            case "commits":
+                csvFormat = csvFormat.withHeader(Commit.csvHeaderCommits.class);
+                break;
+            case "merges":
+                csvFormat = csvFormat.withHeader(Commit.csvHeaderMerges.class);
+                break;
+        }
 
         Path targetFilePath = Paths.get(outputDirPath.toAbsolutePath().toString(),
                 project + "§" + branch + "_" + type + ".csv");
         File targetFile = new File(targetFilePath.toAbsolutePath().toString());
 
-        // TODO: write header
+        System.out.println("Writing file: " + targetFile.getName());
 
         try (CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(targetFile), csvFormat)) {
+            // header is automatically written
+            // write commit data
             for (Commit commit : commits) {
-                csvPrinter.printRecord(commit.getValues());
+                switch (type) {
+                    case "commits":
+                        csvPrinter.printRecord(Arrays.asList(commit.getValuesCommits()));
+                        break;
+                    case "merges":
+                        csvPrinter.printRecord(Arrays.asList(commit.getValuesMerges()));
+                        break;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
