@@ -28,10 +28,11 @@ class GitLogParser {
     private static final Pattern commitDatePattern = Pattern.compile("^CommitDate:\\s+([\\w\\s-:+]+).*");
     private static final Pattern fileStatsPattern = Pattern.compile("^(\\d+|-)\\s+(\\d+|-)\\s+(.+)");
     private static final Pattern linesAddedDeletedPattern = Pattern.compile("^(\\d+)\\s+(\\d+)\\s+(.+)"); // ignores binary files (-	- PATH)
-    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merge(?:\\s+remote)?(?:\\s+branch)?\\s+'(.+)'(?:\\s+of\\s+([^ ]+))?(?:\\s+into\\s+([^ ]+)\\s*)?");
-    private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merge remote-tracking branch '(.+)'.*");
-    private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merge tag '(.+)' into (.+)");
-    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merge\\s+pull\\s+request\\s+#(\\d+)(?:\\s+from (.+)/(.+))?\\s*");
+    private static final Pattern mergedBranchPattern = Pattern.compile("\\s*Merged?(?:\\s+remote)?(?:\\s+branch)?\\s+'([^\\s]+)'(?:\\s+of\\s+([^\\s]+))?(?:\\s+into\\s+([^\\s]+))?.*");
+    private static final Pattern mergedRemoteTrackingBranchPattern = Pattern.compile("\\s*Merged? remote-tracking branch '([^\\s]+)'.*");
+    private static final Pattern mergeTagPattern = Pattern.compile("\\s*Merged?\\s+tag\\s+'(.+)'(?:\\s+into\\s+([^\\s]+))?.*");
+    private static final Pattern mergedPullRequestPattern = Pattern.compile("\\s*Merged?\\s+pull\\s+request\\s+#(\\d+)(?:\\s+from ([^\\s]+)/([^\\s]+))?.*");
+    private static final Pattern mergedCommitPattern = Pattern.compile("\\s*Merged?(?:\\s+commit)?\\s+'([^\\s]+)'(?:\\s+into\\s+([^\\s]+))?.*");
 
     private Path inputDirPath, outputDirPath;
     private LinkedList<Commit> commits;
@@ -264,6 +265,22 @@ class GitLogParser {
                             continue;
                         }
 
+                        // check if commit contains information about merged commit (cherry-picking)
+                        Matcher mergedCommitMatcher = mergedCommitPattern.matcher(line);
+                        if (mergedCommitMatcher.matches()) {
+                            String mergedCommit = mergedCommitMatcher.group(1);
+                            currentCommit.setSourceCommit(mergedCommit);
+
+                            if (mergedCommitMatcher.group(2) != null) {
+                                // "into"-part present
+                                String targetBranch = mergedCommitMatcher.group(2);
+                                currentCommit.setTargetBranch(targetBranch);
+                            }
+
+                            continue;
+                        }
+
+                        // print merge log messages that were not matched
                         if (line.trim().toLowerCase().startsWith("merge")) {
                             System.out.println(line);
                         }

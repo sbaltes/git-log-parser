@@ -20,8 +20,9 @@ class Commit {
     // only for merge
     private String mergedCommits;
     private String sourceUser; // for pull requests, e.g. "Merge pull request #4996 from Fivell/issue_4977"
-    private String sourceRepo; // e.g. "Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master"
+    private String sourceRepo; // e.g., "Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master"
     private String sourceBranch; // remote-tracking branches usually start with "origin/"
+    private String sourceCommit; // cherry-pick, e.g., "Merge commit 'f6c66cec1a653af99f2abca222718d105c8ad39d' into dependency-management-refactor", but also Merge commit 'vhochstein/master'
     private String targetBranch;
     // only for merged pull request
     private String pullRequestId;
@@ -51,6 +52,7 @@ class Commit {
         output += "SourceUser: " + sourceUser + "; ";
         output += "SourceRepo: " + sourceRepo + "; ";
         output += "SourceBranch: " + sourceBranch + "; ";
+        output += "SourceCommit: " + sourceCommit + "; ";
         output += "TargetBranch: " + targetBranch + "; ";
         output += "PullRequestId: " + pullRequestId + "; ";
         output += "TagName: " + tagName + "; ";
@@ -174,6 +176,14 @@ class Commit {
         this.sourceRepo = sourceRepo;
     }
 
+    String getSourceCommit() {
+        return sourceCommit;
+    }
+
+    void setSourceCommit(String sourceCommit) {
+        this.sourceCommit = sourceCommit;
+    }
+
     String getTargetBranch() {
         return targetBranch;
     }
@@ -267,7 +277,7 @@ class Commit {
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
         log_message_length, log_message,
-        source_user, source_repo, source_branch, target_branch,
+        source_user, source_repo, source_branch, source_commit, target_branch,
         pull_request_id,
         tag_name
     }
@@ -278,7 +288,7 @@ class Commit {
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
                 String.valueOf(getLogMessageLength()), getLogMessage(),
-                getSourceUser(), getSourceRepo(), getSourceBranch(), getTargetBranch(),
+                getSourceUser(), getSourceRepo(), getSourceBranch(), getSourceCommit(), getTargetBranch(),
                 getPullRequestId(),
                 getTagName()
         };
