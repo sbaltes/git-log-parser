@@ -11,6 +11,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -46,7 +47,6 @@ class GitLogParser {
     }
 
     void parseFiles() {
-
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(inputDirPath)) {
             for (Path path : directoryStream) {
                 File file = new File(path.toAbsolutePath().toString());
@@ -63,7 +63,6 @@ class GitLogParser {
     }
 
     private LinkedList<Commit> parseFile(File file) {
-
         System.out.println("Parsing file: " + file.getName());
 
         commits = new LinkedList<>();
@@ -325,7 +324,6 @@ class GitLogParser {
     }
 
     private void writeData(Path outputDirPath) {
-
         File outputDir = new File(outputDirPath.toAbsolutePath().toString());
 
         if (!(outputDir.exists() && outputDir.isDirectory())) {
@@ -374,8 +372,8 @@ class GitLogParser {
     }
 
     public static void main(String[] args) {
-
         System.out.println("GitLogParser");
+        System.out.println("Current time: " + OffsetDateTime.now());
 
         Options options = new Options();
 
