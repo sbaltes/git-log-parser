@@ -308,15 +308,20 @@ class GitLogParser {
         return commits;
     }
 
-    private static String convertDate(String date) {
+    private static String convertDate(String dateString) {
         // make date string compatible with BigQuery's Timestamp format
         // (see https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#time-zones)
-        // "2016-07-08 19:59:01 +0200" => 2016-07-08T19:59:01+0200
-        String[] dateParts = date.split(" ");
+        // "2016-07-08 19:59:01 +0200" => 2016-07-08T19:59:01+02:00
+        String[] dateParts = dateString.split(" ");
         if (dateParts.length != 3) {
             throw new IllegalArgumentException("Wrong date format");
         }
-        return dateParts[0] + "T" + dateParts[1] + dateParts[2];
+
+        String date = dateParts[0];
+        String time = dateParts[1];
+        String timeZone = dateParts[2];
+
+        return date + "T" + time + timeZone.substring(0,3) + ":" + timeZone.substring(3, timeZone.length());
     }
 
     private void writeData(Path outputDirPath) {
