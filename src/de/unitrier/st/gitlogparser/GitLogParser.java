@@ -312,15 +312,24 @@ class GitLogParser {
         // (see https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#time-zones)
         // "2016-07-08 19:59:01 +0200" => 2016-07-08T19:59:01+02:00
         String[] dateParts = dateString.split(" ");
-        if (dateParts.length != 3 && dateString.length() != 25) {
+        if (dateParts.length != 3) {
             throw new IllegalArgumentException("Wrong date format: " + dateString);
         }
 
         String date = dateParts[0];
         String time = dateParts[1];
         String timeZone = dateParts[2];
+        String result = date + "T" + time;
 
-        return date + "T" + time + timeZone.substring(0,3) + ":" + timeZone.substring(3, timeZone.length());
+        // ignore invalid time zone information (see, e.g., file rails_rails§3-2-stable_commits.csv,
+        // hash 4cf94979c9f4d6683c9338d694d5eb3106a4e734: "2011-08-29T06:50:23+51:800")
+        if (timeZone.startsWith("+") && timeZone.length() == 5) {
+            result += timeZone.substring(0,3) + ":" + timeZone.substring(3, timeZone.length());
+        } else {
+            result += "+00:00";
+        }
+
+        return  result;
     }
 
     private void writeData(Path outputDirPath) {
