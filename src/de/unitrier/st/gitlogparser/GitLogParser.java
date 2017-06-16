@@ -148,7 +148,7 @@ class GitLogParser {
                     Matcher authorDateMatcher = authorDatePattern.matcher(line);
                     if (authorDateMatcher.matches()) {
                         String date = authorDateMatcher.group(1);
-                        currentCommit.setAuthorDate(date);
+                        currentCommit.setAuthorDate(convertDate(date));
                         continue;
                     }
 
@@ -175,7 +175,7 @@ class GitLogParser {
                     Matcher commitDateMatcher = commitDatePattern.matcher(line);
                     if (commitDateMatcher.matches()) {
                         String date = commitDateMatcher.group(1);
-                        currentCommit.setCommitDate(date);
+                        currentCommit.setCommitDate(convertDate(date));
                         continue;
                     }
 
@@ -306,6 +306,17 @@ class GitLogParser {
         }
 
         return commits;
+    }
+
+    private static String convertDate(String date) {
+        // make date string compatible with BigQuery's Timestamp format
+        // (see https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#time-zones)
+        // "2016-07-08 19:59:01 +0200" => 2016-07-08T19:59:01+0200
+        String[] dateParts = date.split(" ");
+        if (dateParts.length != 3) {
+            throw new IllegalArgumentException("Wrong date format");
+        }
+        return dateParts[0] + "T" + dateParts[1] + dateParts[2];
     }
 
     private void writeData(Path outputDirPath) {
