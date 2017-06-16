@@ -312,8 +312,8 @@ class GitLogParser {
         // (see https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#time-zones)
         // "2016-07-08 19:59:01 +0200" => 2016-07-08T19:59:01+02:00
         String[] dateParts = dateString.split(" ");
-        if (dateParts.length != 3) {
-            throw new IllegalArgumentException("Wrong date format");
+        if (dateParts.length != 3 && dateString.length() != 25) {
+            throw new IllegalArgumentException("Wrong date format: " + dateString);
         }
 
         String date = dateParts[0];
