@@ -41,12 +41,12 @@ class GitLogParser {
     private String branch;
     private String type; // "commits" or "merges"
 
-    GitLogParser(Path inputDirPath, Path outputDirPath) {
+    private GitLogParser(Path inputDirPath, Path outputDirPath) {
         this.inputDirPath = inputDirPath;
         this.outputDirPath = outputDirPath;
     }
 
-    void parseFiles() {
+    private void parseFiles() {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(inputDirPath)) {
             for (Path path : directoryStream) {
                 File file = new File(path.toAbsolutePath().toString());
@@ -99,14 +99,16 @@ class GitLogParser {
                 // commit hash
                 Matcher commitHashMatcher = commitHashPattern.matcher(line);
                 if (commitHashMatcher.matches()) {
-
                     // save previous commit
                     if (currentCommit != null) {
-                        // save log message without trailing empty lines
-                        currentCommit.setLogMessage(logMessageBuilder.toString().trim());
+                        // ignore commits that only modified binary files (fileCount 0, not a merge)
+                        if (!(currentCommit.getFileCount() == 0 && currentCommit.getMergedCommits() == null)) {
+                            // save log message without trailing empty lines
+                            currentCommit.setLogMessage(logMessageBuilder.toString().trim());
+                            commits.add(currentCommit);
+                        }
                         logMessageBuilder = new StringBuilder();
                         readingLogMessage = false; // needed in case file stats not present on log (true for merges)
-                        commits.add(currentCommit);
                     }
 
                     String commitHash = commitHashMatcher.group(1);
