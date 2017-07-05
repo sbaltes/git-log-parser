@@ -36,14 +36,16 @@ class GitLogParser {
     private static final Pattern mergedCommitPattern = Pattern.compile("(?i)\\s*Merged?(?:\\s+commit)?\\s+'([^\\s]+)'(?:\\s+into\\s+([^\\s]+))?.*");
 
     private Path inputDirPath, outputDirPath;
+    private String[] fileExtensions;
     private LinkedList<Commit> commits;
     private String project;
     private String branch;
     private String type; // "commits" or "merges"
 
-    private GitLogParser(Path inputDirPath, Path outputDirPath) {
+    private GitLogParser(Path inputDirPath, Path outputDirPath, String[] fileExtensions) {
         this.inputDirPath = inputDirPath;
         this.outputDirPath = outputDirPath;
+        this.fileExtensions = fileExtensions;
     }
 
     private void parseFiles() {
@@ -204,7 +206,18 @@ class GitLogParser {
                             int linesAdded = Integer.parseInt(linesAddedDeletedMatcher.group(1));
                             int linesDeleted = Integer.parseInt(linesAddedDeletedMatcher.group(2));
                             String path = linesAddedDeletedMatcher.group(3);
-                            currentCommit.addFile(new CommitFile(linesAdded, linesDeleted, path));
+
+                            // if file extension filter is defined, apply the filter
+                            if (fileExtensions.length > 0) {
+                                for (String fileExtension : fileExtensions) {
+                                    if (path.endsWith("." + fileExtension)) {
+                                        currentCommit.addFile(new CommitFile(linesAdded, linesDeleted, path));
+                                    }
+                                }
+                            } else { // otherwise just add the file
+                                currentCommit.addFile(new CommitFile(linesAdded, linesDeleted, path));
+                            }
+
                             continue;
                         }
                     }
@@ -396,6 +409,10 @@ class GitLogParser {
         inputDir.setRequired(true);
         options.addOption(outputDir);
 
+        Option fileExtensionFilter = new Option("f", "file-extension-filter", true, "file extension filter");
+        fileExtensionFilter.setRequired(false);
+        options.addOption(fileExtensionFilter);
+
         CommandLineParser commandLineParser = new DefaultParser();
         HelpFormatter commandLineFormatter = new HelpFormatter();
         CommandLine commandLine;
@@ -412,7 +429,13 @@ class GitLogParser {
         Path inputDirPath = Paths.get(commandLine.getOptionValue("input-dir"));
         Path outputDirPath = Paths.get(commandLine.getOptionValue("output-dir"));
 
-        GitLogParser gitLogParser = new GitLogParser(inputDirPath, outputDirPath);
+        String[] fileExtensions = new String[0];
+        if (commandLine.hasOption("file-extension-filter")) {
+            String fileExtensionFilterString = commandLine.getOptionValue("file-extension-filter");
+            fileExtensions = fileExtensionFilterString.split("\\s+");
+        }
+
+        GitLogParser gitLogParser = new GitLogParser(inputDirPath, outputDirPath, fileExtensions);
         gitLogParser.parseFiles();
     }
 }
