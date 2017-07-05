@@ -4,7 +4,7 @@
 
     <groupId>de.unitrier.st.gitlogparser</groupId>
     <artifactId>GitLogParser</artifactId>
-    <version>1.1</version>
+    <version>1.0.2</version>
 
     <name>GitLogParser</name>
     <url>https://github.com/sbaltes/git-log-parser</url>
