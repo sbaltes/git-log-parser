@@ -105,9 +105,12 @@ class GitLogParser {
                     if (currentCommit != null) {
                         // ignore commits that only modified binary files (fileCount 0, not a merge)
                         if (!(currentCommit.getFileCount() == 0 && currentCommit.getMergedCommits() == null)) {
-                            // save log message without trailing empty lines
-                            currentCommit.setLogMessage(logMessageBuilder.toString().trim());
-                            commits.add(currentCommit);
+                            // ignore commits that did not modify any content (e.g., only file permissions changed)
+                            if (currentCommit.getLineCount() > 0) {
+                                // save log message without trailing empty lines
+                                currentCommit.setLogMessage(logMessageBuilder.toString().trim());
+                                commits.add(currentCommit);
+                            }
                         }
                         logMessageBuilder = new StringBuilder();
                         readingLogMessage = false; // needed in case file stats not present on log (true for merges)
