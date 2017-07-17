@@ -236,6 +236,10 @@ class Commit {
         return linesDeleted;
     }
 
+    int getLineCount() {
+        return Math.max(getLinesAdded(), getLinesDeleted());
+    }
+
     String getFileExtensions() {
         HashSet<String> fileExtensions = new HashSet<>();
         for (CommitFile file : files) {
