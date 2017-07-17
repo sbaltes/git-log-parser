@@ -234,49 +234,6 @@ class GitLogParser {
                         // append current line to string builder
                         logMessageBuilder.append(line).append("\n");
 
-                        // check if log contains information about merged branch
-                        Matcher mergedBranchMatcher = mergedBranchPattern.matcher(line);
-                        if (mergedBranchMatcher.matches()) {
-                            String sourceBranch = mergedBranchMatcher.group(1);
-                            currentCommit.setSourceBranch(sourceBranch);
-
-                            if (mergedBranchMatcher.group(2) != null) {
-                                // "of"-part present
-                                String sourceRepo = mergedBranchMatcher.group(2);
-                                currentCommit.setSourceRepo(sourceRepo);
-                            }
-
-                            if (mergedBranchMatcher.group(3) != null) {
-                                // "into"-part present
-                                String targetBranch = mergedBranchMatcher.group(3);
-                                currentCommit.setTargetBranch(targetBranch);
-                            }
-
-                            continue;
-                        }
-
-                        // check if log contains information about merged remote-tracking branch
-                        Matcher mergedRemoteTrackingBranchMatcher = mergedRemoteTrackingBranchPattern.matcher(line);
-                        if (mergedRemoteTrackingBranchMatcher.matches()) {
-                            String remoteTrackingBranch = mergedRemoteTrackingBranchMatcher.group(1);
-                            currentCommit.setSourceBranch(remoteTrackingBranch);
-                            continue;
-                        }
-
-                        // check if log contains information about merged tag
-                        Matcher mergedTagMatcher = mergeTagPattern.matcher(line);
-                        if (mergedTagMatcher.matches()) {
-                            String tagName = mergedTagMatcher.group(1);
-                            currentCommit.setTagName(tagName);
-
-                            if (mergedTagMatcher.group(2) != null) {
-                                String targetBranch = mergedTagMatcher.group(2);
-                                currentCommit.setTargetBranch(targetBranch);
-                            }
-
-                            continue;
-                        }
-
                         // check if log contains information about merged pull request
                         Matcher mergedPullRequestMatcher = mergedPullRequestPattern.matcher(line);
                         if (mergedPullRequestMatcher.matches()) {
@@ -289,21 +246,6 @@ class GitLogParser {
                                 currentCommit.setSourceUser(pullRequestUser);
                                 String sourceBranch = mergedPullRequestMatcher.group(3);
                                 currentCommit.setSourceBranch(sourceBranch);
-                            }
-
-                            continue;
-                        }
-
-                        // check if commit contains information about merged commit (cherry-picking)
-                        Matcher mergedCommitMatcher = mergedCommitPattern.matcher(line);
-                        if (mergedCommitMatcher.matches()) {
-                            String mergedCommit = mergedCommitMatcher.group(1);
-                            currentCommit.setSourceCommit(mergedCommit);
-
-                            if (mergedCommitMatcher.group(2) != null) {
-                                // "into"-part present
-                                String targetBranch = mergedCommitMatcher.group(2);
-                                currentCommit.setTargetBranch(targetBranch);
                             }
 
                             continue;

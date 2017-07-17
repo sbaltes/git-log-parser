@@ -17,17 +17,12 @@ class Commit {
     private int logMessageLength;
     // only for regular commit
     private final ArrayList<CommitFile> files;
-    // only for merge
+    // only for merge commit
     private String mergedCommits;
-    private String sourceUser; // for pull requests, e.g. "Merge pull request #4996 from Fivell/issue_4977"
-    private String sourceRepo; // e.g., "Merge branch 'master' of https://github.com/gregbell/active_admin into upstream/master"
-    private String sourceBranch; // remote-tracking branches usually start with "origin/"
-    private String sourceCommit; // cherry-pick, e.g., "Merge commit 'f6c66cec1a653af99f2abca222718d105c8ad39d' into dependency-management-refactor", but also Merge commit 'vhochstein/master'
-    private String targetBranch;
     // only for merged pull request
     private String pullRequestId;
-    // only for merged tag
-    private String tagName;
+    private String sourceUser; // e.g. "Merge pull request #4996 from *Fivell*/issue_4977"
+    private String sourceBranch; // e.g. "Merge pull request #4996 from Fivell/*issue_4977*"
 
     Commit(String project, String branch, String hashValue) {
         this.project = project;
@@ -49,13 +44,9 @@ class Commit {
         output += "LogMessageLength: " + logMessageLength + "; ";
         output += "FileCount: " + files.size() + "; ";
         output += "MergedCommits: " + mergedCommits + "; ";
-        output += "SourceUser: " + sourceUser + "; ";
-        output += "SourceRepo: " + sourceRepo + "; ";
-        output += "SourceBranch: " + sourceBranch + "; ";
-        output += "SourceCommit: " + sourceCommit + "; ";
-        output += "TargetBranch: " + targetBranch + "; ";
         output += "PullRequestId: " + pullRequestId + "; ";
-        output += "TagName: " + tagName + "; ";
+        output += "SourceUser: " + sourceUser + "; ";
+        output += "SourceBranch: " + sourceBranch + "; ";
         return output;
     }
 
@@ -160,38 +151,6 @@ class Commit {
         this.mergedCommits = mergedCommits.trim();
     }
 
-    String getSourceBranch() {
-        return sourceBranch;
-    }
-
-    void setSourceBranch(String sourceBranch) {
-        this.sourceBranch = sourceBranch.trim();
-    }
-
-    String getSourceRepo() {
-        return sourceRepo;
-    }
-
-    void setSourceRepo(String sourceRepo) {
-        this.sourceRepo = sourceRepo;
-    }
-
-    String getSourceCommit() {
-        return sourceCommit;
-    }
-
-    void setSourceCommit(String sourceCommit) {
-        this.sourceCommit = sourceCommit;
-    }
-
-    String getTargetBranch() {
-        return targetBranch;
-    }
-
-    void setTargetBranch(String targetBranch) {
-        this.targetBranch = targetBranch.trim();
-    }
-
     String getPullRequestId() {
         return pullRequestId;
     }
@@ -208,12 +167,12 @@ class Commit {
         this.sourceUser = sourceUser.trim();
     }
 
-    String getTagName() {
-        return tagName;
+    String getSourceBranch() {
+        return sourceBranch;
     }
 
-    void setTagName(String tagName) {
-        this.tagName = tagName.trim();
+    void setSourceBranch(String sourceBranch) {
+        this.sourceBranch = sourceBranch;
     }
 
     int getFileCount() {
@@ -281,9 +240,9 @@ class Commit {
         author_name, author_email, author_date,
         commit_name, commit_email, commit_date,
         log_message_length, /*log_message,*/
-        source_user, source_repo, source_branch, source_commit, target_branch,
-        pull_request_id,
-        tag_name
+        file_count, lines_added, lines_deleted,
+        file_extensions,
+        pull_request_id, source_user, source_branch
     }
 
     String[] getValuesMerges() {
@@ -292,9 +251,9 @@ class Commit {
                 getAuthorName(), getAuthorEmail(), getAuthorDate(),
                 getCommitName(), getCommitEmail(), getCommitDate(),
                 String.valueOf(getLogMessageLength()), /*getLogMessage(),*/
-                getSourceUser(), getSourceRepo(), getSourceBranch(), getSourceCommit(), getTargetBranch(),
-                getPullRequestId(),
-                getTagName()
+                String.valueOf(getFileCount()), String.valueOf(getLinesAdded()), String.valueOf(getLinesDeleted()),
+                getFileExtensions(),
+                getPullRequestId(), getSourceUser(), getSourceBranch()
         };
     }
 
