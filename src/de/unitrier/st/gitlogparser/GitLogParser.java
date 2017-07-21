@@ -293,7 +293,7 @@ class GitLogParser {
     }
 
     private void writeData(Path outputDirPath) {
-        File outputDir = new File(outputDirPath.toAbsolutePath().toString());
+        File outputDir = outputDirPath.toFile();
 
         if (!(outputDir.exists() && outputDir.isDirectory())) {
             throw new IllegalArgumentException("Illegal output directory");
