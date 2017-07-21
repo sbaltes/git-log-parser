@@ -317,7 +317,7 @@ class GitLogParser {
 
         Path targetFilePath = Paths.get(outputDirPath.toAbsolutePath().toString(),
                 project + "§" + branch + "_" + type + ".csv");
-        File targetFile = new File(targetFilePath.toAbsolutePath().toString());
+        File targetFile = targetFilePath.toFile();
 
         System.out.println("Writing file: " + targetFile.getName());
 
