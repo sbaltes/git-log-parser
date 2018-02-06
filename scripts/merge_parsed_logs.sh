@@ -1,6 +1,6 @@
 #!/bin/bash
 
-input_directory="parsed-logs/*"
+input_directory="$1/*"
 output_file_c="commits.csv"
 output_file_m="merges.csv"
 count_c=0
