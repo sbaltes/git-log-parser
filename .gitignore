@@ -1,11 +1,3 @@
-# Package files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
 # IntelliJ files
 /.idea/
 /out/
