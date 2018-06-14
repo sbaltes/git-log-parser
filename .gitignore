@@ -1,7 +1,7 @@
 # IntelliJ files
-/.idea/
+.idea/
+*iml
 /out/
 /target/
-/git-log-parser.iml
 /input/
 /output/
