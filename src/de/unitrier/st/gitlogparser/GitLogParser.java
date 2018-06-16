@@ -42,6 +42,65 @@ class GitLogParser {
     private String branch;
     private String type; // "commits" or "merges"
 
+    public static void main(String[] args) {
+        System.out.println("GitLogParser");
+        System.out.println("Current time: " + OffsetDateTime.now());
+
+        Options options = new Options();
+
+        Option inputDir = new Option("i", "input-dir", true, "path to input directory");
+        inputDir.setRequired(true);
+        options.addOption(inputDir);
+
+        Option outputDir = new Option("o", "output-dir", true, "path to output directory");
+        inputDir.setRequired(true);
+        options.addOption(outputDir);
+
+        Option fileExtensionFilter = new Option("f", "file-extension-filter", true, "file extension filter");
+        fileExtensionFilter.setRequired(false);
+        options.addOption(fileExtensionFilter);
+
+        CommandLineParser commandLineParser = new DefaultParser();
+        HelpFormatter commandLineFormatter = new HelpFormatter();
+        CommandLine commandLine;
+
+        try {
+            commandLine = commandLineParser.parse(options, args);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+            commandLineFormatter.printHelp("GitLogParser", options);
+            System.exit(1);
+            return;
+        }
+
+        Path inputDirPath = Paths.get(commandLine.getOptionValue("input-dir"));
+        Path outputDirPath = Paths.get(commandLine.getOptionValue("output-dir"));
+
+        if (!Files.exists(inputDirPath)) {
+            throw new IllegalArgumentException("Input directory does not exist.");
+        }
+        if (!Files.isDirectory(inputDirPath)) {
+            throw new IllegalArgumentException("Input directory is not a directory.");
+        }
+
+        if (!Files.exists(outputDirPath)) {
+            try {
+                Files.createDirectories(outputDirPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String[] fileExtensions = new String[0];
+        if (commandLine.hasOption("file-extension-filter")) {
+            String fileExtensionFilterString = commandLine.getOptionValue("file-extension-filter");
+            fileExtensions = fileExtensionFilterString.split("\\s+");
+        }
+
+        GitLogParser gitLogParser = new GitLogParser(inputDirPath, outputDirPath, fileExtensions);
+        gitLogParser.parseFiles();
+    }
+
     private GitLogParser(Path inputDirPath, Path outputDirPath, String[] fileExtensions) {
         this.inputDirPath = inputDirPath;
         this.outputDirPath = outputDirPath;
@@ -338,49 +397,5 @@ class GitLogParser {
             e.printStackTrace();
         }
 
-    }
-
-    public static void main(String[] args) {
-        System.out.println("GitLogParser");
-        System.out.println("Current time: " + OffsetDateTime.now());
-
-        Options options = new Options();
-
-        Option inputDir = new Option("i", "input-dir", true, "path to input directory");
-        inputDir.setRequired(true);
-        options.addOption(inputDir);
-
-        Option outputDir = new Option("o", "output-dir", true, "path to output directory");
-        inputDir.setRequired(true);
-        options.addOption(outputDir);
-
-        Option fileExtensionFilter = new Option("f", "file-extension-filter", true, "file extension filter");
-        fileExtensionFilter.setRequired(false);
-        options.addOption(fileExtensionFilter);
-
-        CommandLineParser commandLineParser = new DefaultParser();
-        HelpFormatter commandLineFormatter = new HelpFormatter();
-        CommandLine commandLine;
-
-        try {
-            commandLine = commandLineParser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            commandLineFormatter.printHelp("GitLogParser", options);
-            System.exit(1);
-            return;
-        }
-
-        Path inputDirPath = Paths.get(commandLine.getOptionValue("input-dir"));
-        Path outputDirPath = Paths.get(commandLine.getOptionValue("output-dir"));
-
-        String[] fileExtensions = new String[0];
-        if (commandLine.hasOption("file-extension-filter")) {
-            String fileExtensionFilterString = commandLine.getOptionValue("file-extension-filter");
-            fileExtensions = fileExtensionFilterString.split("\\s+");
-        }
-
-        GitLogParser gitLogParser = new GitLogParser(inputDirPath, outputDirPath, fileExtensions);
-        gitLogParser.parseFiles();
     }
 }
