@@ -12,7 +12,7 @@ Windows:
 
 Linux/macOS:
 
-    mvn exec:java -Dexec.mainClass="de.unitrier.st.gitlogparser.GitLogParser" -Dexec.args="-i /data/logs -o /data/parsed-logs -f java rb" > output.log
+    mvn exec:java -Dexec.mainClass="de.unitrier.st.gitlogparser.GitLogParser" -Dexec.args="-i /data/logs -o /data/parsed-logs -f java rb" > output_parser.log
 
 #### Parameters
 
