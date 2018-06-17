@@ -1,5 +1,11 @@
 #!/bin/bash
 
+input_directory="$1"
+
+echo "Compressing input directory..."
+tar -zcf "parsed-logs.tar.gz" "$input_directory"
+echo "Input directory compressed."
+
 input_directory="$1/*"
 output_file_c="commits.csv"
 output_file_m="merges.csv"
